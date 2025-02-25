@@ -15,7 +15,7 @@ function Home() {
 
         {/* Explore Button */}
         <button className="mt-6 bg-white text-black font-semibold px-6 py-3 rounded-lg shadow-lg hover:bg-gray-300 transition">
-          Explore
+          About us
         </button>
       </div>
     </div>
