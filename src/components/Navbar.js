@@ -1,28 +1,34 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "./AuthProvider";
 
 function Navbar() {
-  return (
-    <>
-      {/* Navbar */}
-      <nav className=" top-0 left-0 w-full flex justify-between items-center px-10 py-6 bg-gray-800 bg-opacity-80">
-        <h1 className="text-2xl font-bold tracking-wide text-gold">
-          FITNESS FIT
-        </h1>
-        <div className="space-x-8 text-lg">
-          <Link to="/" className="hover:text-gold transition duration-300">Home</Link>
-          <Link to="/reservations" className="hover:text-gold transition duration-300">Health</Link>
-          <Link to="/menu" className="hover:text-gold transition duration-300">Map</Link>
-          <Link to="/blog" className="hover:text-gold transition duration-300">Blog</Link>
-          <Link to="/features" className="hover:text-gold transition duration-300">Features</Link>
-          <Link to="/shop" className="hover:text-gold transition duration-300">Shop</Link>
-          <Link to="/contact" className="hover:text-gold transition duration-300">Contact</Link>
-        </div>
-      </nav>
+  const { user, logout } = useAuth();
 
-      {/* Hero Section */}
-    
-    </>
+  return (
+    <nav className="bg-gray-900 text-white py-4 px-6 flex justify-between items-center">
+      <Link to="/" className="text-2xl font-bold text-yellow-400">FITNESS FIT</Link>
+
+      {user ? (
+        <div className="flex space-x-6">
+          <Link to="/" className="hover:text-yellow-400 transition">Home</Link>
+          <Link to="/menu" className="hover:text-yellow-400 transition">Map</Link>
+          <Link to="/Reservations" className="hover:text-yellow-400 transition">Health</Link>
+          <button onClick={logout} className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition">
+            Logout
+          </button>
+        </div>
+      ) : (
+        <div className="flex space-x-4">
+          <Link to="/login">
+            <button className="bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-600 transition">Login</button>
+          </Link>
+          <Link to="/signup">
+            <button className="bg-green-500 px-4 py-2 rounded-lg hover:bg-green-600 transition">Sign Up</button>
+          </Link>
+        </div>
+      )}
+    </nav>
   );
 }
 
