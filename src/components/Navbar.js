@@ -16,6 +16,7 @@ function Navbar() {
           <Link to="/menu" className="hover:text-yellow-400 transition">Map</Link>
           <Link to="/Reservations" className="hover:text-yellow-400 transition">Health</Link>
           <Link to="/Blog" className="hover:text-yellow-400 transition">Blog</Link>
+      
         </div>
       ) : (
         <div className="flex-1 flex justify-center space-x-4">
