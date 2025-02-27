@@ -19,7 +19,7 @@ function Home() {
   return (
     <div 
       className="relative w-full h-screen bg-cover bg-center flex flex-col items-center justify-center text-white"
-      style={{ backgroundImage: "url('/background.jpg')" }}
+      //style={{ backgroundImage: "url('/background.jpg')" }}
     >
       {/* Main Content */}
       <div className="text-center bg-gray-800 bg-opacity-60 px-6 py-4 rounded-lg">
