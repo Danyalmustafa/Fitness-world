@@ -5,6 +5,10 @@
   "dependencies": {
     "@headlessui/react": "^2.2.0",
     "@tailwindcss/vite": "^4.0.3",
+    "@tensorflow-models/coco-ssd": "^2.2.3",
+    "@tensorflow-models/mobilenet": "^2.1.1",
+    "@tensorflow/tfjs": "^4.22.0",
+    "axios": "^1.8.1",
     "cra-template": "1.2.0",
     "firebase": "^11.3.1",
     "framer-motion": "^12.4.7",

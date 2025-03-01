@@ -4,7 +4,8 @@ import Home from "./components/Home";
 import Reservations from "./components/Reservations";
 import Menu from "./components/Menu"; 
 import Blog from "./components/Blog"; 
-import Reminder from "./components/Reminder"; // ✅ Added Reminder Page
+import Reminder from "./components/Reminder"; // ✅ Reminder Page
+import FoodScanner from "./components/FoodScanner"; // ✅ Food Scanner Page
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import { AuthProvider, useAuth } from "./components/AuthProvider"; 
@@ -20,7 +21,7 @@ function App() {
   );
 }
 
-// New component to handle initial authentication check
+// ✅ Authentication Handler (Redirects users if not logged in)
 const AuthHandler = () => {
   const { user } = useAuth();
 
@@ -42,7 +43,8 @@ const AuthHandler = () => {
         <Route path="/reservations" element={<ProtectedRoute><Reservations /></ProtectedRoute>} />
         <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} />
         <Route path="/blog" element={<ProtectedRoute><Blog /></ProtectedRoute>} />
-        <Route path="/reminder" element={<ProtectedRoute><Reminder /></ProtectedRoute>} /> {/* ✅ Added Reminder Route */}
+        <Route path="/reminder" element={<ProtectedRoute><Reminder /></ProtectedRoute>} /> 
+        <Route path="/scanner" element={<ProtectedRoute><FoodScanner /></ProtectedRoute>} /> {/* ✅ Food Scanner Route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
