@@ -1,28 +1,28 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
+// List of motivational quotes (moved outside to prevent re-creation on every render)
+const quotes = [
+  "Your body can stand almost anything. It’s your mind you have to convince.",
+  "Exercise not only changes your body, it changes your mind, your attitude, and your mood.",
+  "Take care of your body. It’s the only place you have to live.",
+  "Push yourself because no one else is going to do it for you.",
+  "Success starts with self-discipline.",
+  "Every journey begins with a single step – start today!",
+  "The pain you feel today will be the strength you feel tomorrow.",
+  "Do something today that your future self will thank you for."
+];
 
 function Home() {
   const [showAbout, setShowAbout] = useState(false);
   const aboutRef = useRef(null);
   const [quote, setQuote] = useState("");
 
-  // List of motivational quotes
-  const quotes = [
-    "Your body can stand almost anything. It’s your mind you have to convince.",
-    "Exercise not only changes your body, it changes your mind, your attitude, and your mood.",
-    "Take care of your body. It’s the only place you have to live.",
-    "Push yourself because no one else is going to do it for you.",
-    "Success starts with self-discipline.",
-    "Every journey begins with a single step – start today!",
-    "The pain you feel today will be the strength you feel tomorrow.",
-    "Do something today that your future self will thank you for."
-  ];
-
-  // Function to get a random quote
-  const getRandomQuote = () => {
+  // Function to get a random quote (now stable with no dependencies)
+  const getRandomQuote = useCallback(() => {
     const randomIndex = Math.floor(Math.random() * quotes.length);
     return quotes[randomIndex];
-  };
+  }, []);
 
   // Change quote every 5 seconds
   useEffect(() => {
@@ -33,7 +33,7 @@ function Home() {
     }, 5000);
 
     return () => clearInterval(interval); // Cleanup interval on unmount
-  }, []);
+  }, [getRandomQuote]); // No warnings now!
 
   const handleAboutClick = () => {
     setShowAbout(!showAbout);
@@ -109,4 +109,5 @@ function Home() {
 }
 
 export default Home;
+
 
