@@ -46,6 +46,16 @@ function GymMap() {
       { id: 8, name: "Snap Fitness Sheffield", lat: 53.3811, lng: -1.4701 },
       { id: 9, name: "Gymbox London", lat: 51.5155, lng: -0.1419 },
       { id: 10, name: "Virgin Active Nottingham", lat: 52.9548, lng: -1.1581 },
+      { id: 11, name: "Better Gym Cardiff", lat: 51.4816, lng: -3.1791 },
+      { id: 12, name: "Xercise4Less Newcastle", lat: 54.9784, lng: -1.6174 },
+      { id: 13, name: "Total Fitness Chester", lat: 53.1916, lng: -2.8918 },
+      { id: 14, name: "DW Fitness Aberdeen", lat: 57.1497, lng: -2.0943 },
+      { id: 15, name: "The Gym Group Oxford", lat: 51.7520, lng: -1.2577 },
+      { id: 16, name: "Bannatyne Health Club Edinburgh", lat: 55.9533, lng: -3.1883 },
+      { id: 17, name: "Nuffield Health Cambridge", lat: 52.2053, lng: 0.1218 },
+      { id: 18, name: "Virgin Active Brighton", lat: 50.8225, lng: -0.1372 },
+      { id: 19, name: "JD Gyms Hull", lat: 53.7676, lng: -0.3274 },
+      { id: 20, name: "Everlast Gym Leicester", lat: 52.6369, lng: -1.1398 },
     ]);
   }, []);
 
