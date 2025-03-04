@@ -6,6 +6,7 @@ import Menu from "./components/Menu";
 import Blog from "./components/Blog"; 
 import Reminder from "./components/Reminder"; // ✅ Reminder Page
 import FoodScanner from "./components/FoodScanner"; // ✅ Food Scanner Page
+import MentalHealth from "./components/MentalHealth"; // ✅ Mental Health Page
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import { AuthProvider, useAuth } from "./components/AuthProvider"; 
@@ -45,6 +46,7 @@ const AuthHandler = () => {
         <Route path="/blog" element={<ProtectedRoute><Blog /></ProtectedRoute>} />
         <Route path="/reminder" element={<ProtectedRoute><Reminder /></ProtectedRoute>} /> 
         <Route path="/scanner" element={<ProtectedRoute><FoodScanner /></ProtectedRoute>} /> {/* ✅ Food Scanner Route */}
+        <Route path="/mental-health" element={<ProtectedRoute><MentalHealth /></ProtectedRoute>} /> {/* ✅ Mental Health Route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

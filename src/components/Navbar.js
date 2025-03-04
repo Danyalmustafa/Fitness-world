@@ -17,7 +17,8 @@ function Navbar() {
           <Link to="/Reservations" className="hover:text-yellow-400 transition">Health</Link>
           <Link to="/Blog" className="hover:text-yellow-400 transition">Blog</Link>
           <Link to="/Reminder" className="hover:text-yellow-400 transition">Reminders</Link>
-          <Link to="/scanner" className="hover:text-yellow-400 transition">Food Scanner</Link> {/* Added Button */}
+          <Link to="/scanner" className="hover:text-yellow-400 transition">Food Scanner</Link> 
+          <Link to="/mental-health" className="hover:text-yellow-400 transition">Mental Health</Link> {/* ✅ New Button */}
         </div>
       ) : (
         <div className="flex-1 flex justify-center space-x-4">
