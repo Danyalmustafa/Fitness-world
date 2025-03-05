@@ -1,136 +1,186 @@
-import React, { useState } from "react";
-import { Calendar, momentLocalizer } from "react-big-calendar";
-import moment from "moment";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import { Dialog } from "@headlessui/react"; // ✅ Modern modal UI
+import React, { useState, useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
+import Confetti from "react-confetti"; // ✅ Re-added confetti effect
 
-const localizer = momentLocalizer(moment);
+function HydrationReminder() {
+  const [waterIntake, setWaterIntake] = useState(0);
+  const [goal, setGoal] = useState(8);
+  const [progress, setProgress] = useState(0);
+  const [isReminderTime, setIsReminderTime] = useState(false);
+  const [hydrationFact, setHydrationFact] = useState("");
+  const [showConfetti, setShowConfetti] = useState(false); // ✅ Confetti state
 
-function Reminder() {
-  const [events, setEvents] = useState([]); // Store reminders
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [reminderText, setReminderText] = useState("");
-  const [isOpen, setIsOpen] = useState(false); // ✅ Modal state
-  const [currentDate, setCurrentDate] = useState(new Date()); // ✅ Track selected date
-  const [view, setView] = useState("month"); // ✅ Track selected view
+  // ✅ Use useMemo() to prevent hydrationFacts from re-creating on every render
+  const hydrationFacts = useMemo(
+    () => [
+      "Drinking water boosts energy and relieves fatigue!",
+      "Your body is 60% water – stay hydrated!",
+      "Water helps you maintain a healthy weight!",
+      "Hydration improves skin health and keeps you glowing!",
+      "Drinking enough water prevents headaches and fatigue.",
+    ],
+    []
+  );
 
-  // Handle date selection
-  const handleSelectSlot = ({ start }) => {
-    setSelectedDate(start);
-    setIsOpen(true); // ✅ Open modal
+  useEffect(() => {
+    setProgress((waterIntake / goal) * 100);
+
+    // ✅ Show confetti when goal is reached
+    if (waterIntake === goal) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000); // Hide after 3s
+    }
+
+    // Set a random hydration fact every 5 seconds
+    const factInterval = setInterval(() => {
+      setHydrationFact(
+        hydrationFacts[Math.floor(Math.random() * hydrationFacts.length)]
+      );
+    }, 5000);
+
+    return () => clearInterval(factInterval);
+  }, [waterIntake, goal, hydrationFacts]);
+
+  // Function to add water intake
+  const addWater = () => {
+    if (waterIntake < goal) {
+      setWaterIntake((prev) => prev + 1);
+    }
   };
 
-  // Add reminder
-  const handleAddReminder = () => {
-    if (!reminderText || !selectedDate) return;
-
-    const newEvent = {
-      title: reminderText,
-      start: selectedDate,
-      end: selectedDate,
-    };
-
-    setEvents([...events, newEvent]);
-    setReminderText("");
-    setSelectedDate(null);
-    setIsOpen(false); // ✅ Close modal after adding reminder
+  // Function to reset water intake
+  const resetWater = () => {
+    setWaterIntake(0);
+    setShowConfetti(false); // Hide confetti when reset
   };
+
+  // Request notification permission once when component mounts
+  useEffect(() => {
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // Send hydration reminders every 3 hours
+  useEffect(() => {
+    const reminderInterval = setInterval(() => {
+      if (Notification.permission === "granted") {
+        new Notification("💧 Stay Hydrated!", {
+          body: "Time to drink some water! Keep your body refreshed.",
+        });
+      }
+      setIsReminderTime(true);
+      setTimeout(() => setIsReminderTime(false), 1500);
+    }, 3 * 60 * 60 * 1000); // Every 3 hours
+
+    return () => clearInterval(reminderInterval);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-5 flex flex-col items-center">
-      <h1 className="text-6xl font-serif text-yellow-400 mb-6">Reminders & Agenda</h1>
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-300 to-blue-100 p-6"
+    >
+      {/* ✅ Confetti Effect */}
+      {showConfetti && <Confetti />}
 
-      {/* ✅ Calendar Navigation Buttons */}
-      <div className="flex justify-between items-center w-full max-w-4xl bg-white shadow-md p-4 rounded-lg mb-4">
-        <button
-          onClick={() => setCurrentDate(new Date())}  // ✅ Reset to today
-          className="bg-yellow-400 text-white px-4 py-2 rounded transition-all duration-300 transform hover:scale-105 hover:bg-yellow-500"
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white p-6 rounded-xl shadow-lg text-center max-w-md w-full"
+      >
+        {/* Pulsing Effect for Reminder */}
+        <motion.h1
+          animate={isReminderTime ? { scale: [1, 1.1, 1] } : {}}
+          transition={{ duration: 0.8, repeat: isReminderTime ? Infinity : 0 }}
+          className="text-3xl font-bold text-blue-600"
         >
-          Today
-        </button>
-        <div className="space-x-2">
-          <button
-            onClick={() => setCurrentDate(moment(currentDate).subtract(1, view === "month" ? "months" : "weeks").toDate())} // ✅ Move Back
-            className="bg-gray-500 text-white px-4 py-2 rounded transition-all duration-300 transform hover:scale-105 hover:bg-gray-600"
-          >
-            ◀️ Back
-          </button>
-          <button
-            onClick={() => setCurrentDate(moment(currentDate).add(1, view === "month" ? "months" : "weeks").toDate())} // ✅ Move Forward
-            className="bg-gray-500 text-white px-4 py-2 rounded transition-all duration-300 transform hover:scale-105 hover:bg-gray-600"
-          >
-            Next ▶️
-          </button>
+          Hydration Reminder 💧
+        </motion.h1>
+        <p className="text-gray-600 mt-2">Track your daily water intake</p>
+
+        {/* Water Glass Animation */}
+        <div className="relative w-40 h-40 bg-blue-200 rounded-b-full overflow-hidden mt-4 border-4 border-blue-400 shadow-md">
+          <motion.div
+            initial={{ height: "0%" }}
+            animate={{ height: `${progress}%` }}
+            transition={{ duration: 0.8 }}
+            className="absolute bottom-0 w-full bg-blue-500"
+          ></motion.div>
         </div>
-      </div>
 
-      {/* ✅ View Selector */}
-      <div className="flex justify-center space-x-3 mb-4">
-        {["month", "week", "day", "agenda"].map((v) => (
-          <button
-            key={v}
-            onClick={() => setView(v)} // ✅ Change view
-            className={`px-4 py-2 rounded transition-all duration-300 transform hover:scale-105 ${
-              view === v ? "bg-yellow-400 text-white" : "bg-gray-300"
-            } hover:bg-yellow-500`}
+        {/* Water Intake Counter */}
+        <motion.div
+          key={waterIntake}
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 10 }}
+          className="mt-4"
+        >
+          <p className="text-xl font-semibold">{waterIntake} / {goal} cups</p>
+        </motion.div>
+
+        {/* Buttons with Hover & Click Animations */}
+        <div className="mt-6 flex justify-center gap-4">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={addWater}
+            className="bg-blue-500 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
           >
-            {v.charAt(0).toUpperCase() + v.slice(1)}
-          </button>
-        ))}
-      </div>
+            + Add Cup
+          </motion.button>
 
-      {/* Calendar Component */}
-      <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg p-5 mb-6">
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          selectable
-          onSelectSlot={handleSelectSlot}
-          date={currentDate} // ✅ Ensure current date updates correctly
-          onNavigate={(date) => setCurrentDate(date)} // ✅ Sync date changes
-          view={view} // ✅ Sync view changes
-          onView={(newView) => setView(newView)} // ✅ Handle view changes
-          style={{ height: 500 }}
-          className="rounded-lg shadow-md"
-        />
-      </div>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9, rotate: [-5, 5, -5, 5, 0] }}
+            onClick={resetWater}
+            className="bg-red-500 text-white px-5 py-2 rounded-lg font-semibold hover:bg-red-600 transition"
+          >
+            Reset
+          </motion.button>
+        </div>
 
-      {/* ✅ Modern Modal for Adding Reminders */}
-      {isOpen && (
-        <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold text-gray-700 mb-4">
-              Add Reminder for {moment(selectedDate).format("LL")}
-            </h2>
-            <input
-              type="text"
-              placeholder="Enter reminder"
-              value={reminderText}
-              onChange={(e) => setReminderText(e.target.value)}
-              className="border rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-            <div className="flex justify-end space-x-3 mt-4">
-              <button
-                onClick={() => setIsOpen(false)}
-                className="bg-gray-400 text-white px-4 py-2 rounded transition-all duration-300 transform hover:scale-105 hover:bg-gray-500"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddReminder}
-                className="bg-yellow-400 text-white px-4 py-2 rounded transition-all duration-300 transform hover:scale-105 hover:bg-yellow-500"
-              >
-                Add Reminder
-              </button>
-            </div>
-          </div>
-        </Dialog>
-      )}
-    </div>
+        {/* Custom Goal Input */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 0.5 }}
+          className="mt-6"
+        >
+          <label className="text-gray-700 font-semibold">Set Daily Goal:</label>
+          <input
+            type="number"
+            value={goal}
+            onChange={(e) => setGoal(Number(e.target.value))}
+            className="mt-2 p-2 border border-gray-300 rounded-lg w-20 text-center"
+            min="1"
+          />
+          <span className="text-gray-500 ml-2">cups</span>
+        </motion.div>
+
+        {/* Hydration Fact Display (Fixed Size) */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="mt-4 text-center italic text-blue-600"
+          style={{ minHeight: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}
+        >
+          {hydrationFact}
+        </motion.p>
+      </motion.div>
+    </motion.div>
   );
 }
 
-export default Reminder;
+export default HydrationReminder;
+
+
+
+
+
 

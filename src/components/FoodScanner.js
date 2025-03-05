@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import * as mobilenet from "@tensorflow-models/mobilenet"; // ✅ MobileNet for food recognition
 import axios from "axios";
 
 const FoodScanner = () => {
@@ -8,11 +9,10 @@ const FoodScanner = () => {
   const [detectedFoods, setDetectedFoods] = useState([]);
   const [nutritionData, setNutritionData] = useState({});
   const [loading, setLoading] = useState(false);
-  const [stream, setStream] = useState(null); // Store camera stream
+  const [stream, setStream] = useState(null);
 
-  // ✅ Replace with your actual API Keys
-  const GOOGLE_API_KEY = "AIzaSyBLtUTqJQ-pX6jhTLbOzojEdPVgmqqC-3U"; // Google Vision API Key
-  const SPOONACULAR_API_KEY = "f2cf7e6b741140ed94538f1d25738037 "; // Spoonacular API Key
+  // ✅ Spoonacular API Key (No Google API needed)
+  const SPOONACULAR_API_KEY = "f2cf7e6b741140ed94538f1d25738037 "; 
 
   // 🎥 Start Camera
   const startCamera = async () => {
@@ -21,7 +21,7 @@ const FoodScanner = () => {
       if (videoRef.current) {
         videoRef.current.srcObject = cameraStream;
       }
-      setStream(cameraStream); // Store stream to stop it later
+      setStream(cameraStream);
     } catch (error) {
       console.error("Error accessing camera: ", error);
     }
@@ -30,11 +30,11 @@ const FoodScanner = () => {
   // ❌ Stop Camera
   const stopCamera = () => {
     if (stream) {
-      stream.getTracks().forEach(track => track.stop()); // Stop all video tracks
+      stream.getTracks().forEach(track => track.stop());
       if (videoRef.current) {
         videoRef.current.srcObject = null;
       }
-      setStream(null); // Reset stream state
+      setStream(null);
     }
   };
 
@@ -46,50 +46,34 @@ const FoodScanner = () => {
     const video = videoRef.current;
     const ctx = canvas.getContext("2d");
 
-    // Resize image for better detection
     canvas.width = 640;
     canvas.height = 480;
     ctx.drawImage(video, 0, 0, 640, 480);
 
-    // Convert to Base64
     const imgData = canvas.toDataURL("image/png");
     setImage(imgData);
   };
 
-  // 🔍 Analyze Image with Google Vision API
+  // 🔍 Analyze Image using TensorFlow.js (MobileNet Model)
   const analyzeFood = async () => {
     if (!image) return;
 
     setLoading(true);
-    const base64Image = image.split(",")[1];
 
     try {
-      const response = await axios.post(
-        `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_API_KEY}`,
-        {
-          requests: [
-            {
-              image: { content: base64Image },
-              features: [
-                { type: "WEB_DETECTION", maxResults: 10 },
-                { type: "LABEL_DETECTION", maxResults: 10 },
-              ],
-            },
-          ],
-        }
-      );
+      // Load MobileNet Model
+      const model = await mobilenet.load();
+      const imgElement = document.createElement("img");
+      imgElement.src = image;
+      await imgElement.decode();
 
-      // ✅ Extract detected food items
-      const webEntities = response.data.responses[0]?.webDetection?.webEntities || [];
-      const labels = response.data.responses[0]?.labelAnnotations || [];
+      // Run Image Classification
+      const predictions = await model.classify(imgElement);
 
-      // ✅ List of generic words to exclude
-      const genericWords = ["fruit", "food", "natural foods", "plant", "dish", "meal", "produce", "ingredient", "citrus"];
-
-      // ✅ Filter and prioritize specific food items
-      const foodItems = [...webEntities, ...labels]
-        .filter(item => item.score > 0.7 && !genericWords.includes(item.description.toLowerCase()))
-        .map(item => item.description);
+      // ✅ Extract detected food names
+      const foodItems = predictions
+        .filter(pred => pred.probability > 0.6) // Confidence filter
+        .map(pred => pred.className);
 
       setDetectedFoods(foodItems.length > 0 ? foodItems : ["No specific food detected"]);
       setNutritionData({}); // Reset nutrition data before fetching new ones
@@ -97,7 +81,7 @@ const FoodScanner = () => {
       // ✅ Fetch full nutrition data for detected food items
       foodItems.forEach(fetchNutritionData);
     } catch (error) {
-      console.error("Error detecting food:", error.response?.data || error);
+      console.error("Error detecting food:", error);
       setDetectedFoods(["Error detecting food"]);
     }
 
@@ -106,18 +90,16 @@ const FoodScanner = () => {
 
   // 🔥 Fetch Full Nutrition Data from Spoonacular API
   const fetchNutritionData = async (foodName) => {
-    if (!foodName || foodName.length < 3) return; // Ignore very short words
+    if (!foodName || foodName.length < 3) return;
 
     try {
-      // Search for food ingredient in Spoonacular database
       const searchResponse = await axios.get(
         `https://api.spoonacular.com/food/ingredients/search?query=${foodName}&apiKey=${SPOONACULAR_API_KEY}`
       );
 
       if (searchResponse.data.results.length > 0) {
-        const foodId = searchResponse.data.results[0].id; // Get best-matching food ID
+        const foodId = searchResponse.data.results[0].id;
 
-        // Fetch full nutrition details using the food ID
         const nutritionResponse = await axios.get(
           `https://api.spoonacular.com/food/ingredients/${foodId}/information?amount=100&unit=grams&apiKey=${SPOONACULAR_API_KEY}`
         );
@@ -157,7 +139,7 @@ const FoodScanner = () => {
   return (
     <div style={{ textAlign: "center", marginTop: "20px" }}>
       <h2 className="text-2xl font-bold">Food Scanner & Full Nutrition Tracker</h2>
-      
+
       {/* 🎥 Live Camera Feed */}
       <video ref={videoRef} autoPlay playsInline width="300" className="rounded-lg border border-gray-300 shadow-md" />
       <br />
@@ -206,6 +188,8 @@ const FoodScanner = () => {
 };
 
 export default FoodScanner;
+
+
 
 
 
