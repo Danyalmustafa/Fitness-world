@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { db, auth } from "../firebaseConfig";
+import { doc, setDoc } from "firebase/firestore";
 
 const DietPlan = () => {
   const [age, setAge] = useState(25);
   const [gender, setGender] = useState("male");
   const [activityLevel, setActivityLevel] = useState("moderate");
-  const [weight, setWeight] = useState(70); // in kg
-  const [height, setHeight] = useState(170); // in cm
-  const [goal, setGoal] = useState("maintain"); // weight loss, maintain, gain
+  const [weight, setWeight] = useState(70);
+  const [height, setHeight] = useState(170);
+  const [goal, setGoal] = useState("maintain");
   const [dietType, setDietType] = useState("balanced");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const activityMultipliers = {
     sedentary: 1.2,
@@ -25,46 +29,50 @@ const DietPlan = () => {
 
     let calories = bmr * activityMultipliers[activityLevel];
 
-    if (goal === "lose") calories *= 0.85; 
-    if (goal === "gain") calories *= 1.15; 
+    if (goal === "lose") calories *= 0.85;
+    if (goal === "gain") calories *= 1.15;
 
     return Math.round(calories);
   };
 
-  const dailyCalories = calculateCalories();
-
   const macros = {
-    carbs: Math.round((dailyCalories * 0.40) / 4),
-    protein: Math.round((dailyCalories * 0.30) / 4),
-    fats: Math.round((dailyCalories * 0.30) / 9),
+    carbs: Math.round((calculateCalories() * 0.40) / 4),
+    protein: Math.round((calculateCalories() * 0.30) / 4),
+    fats: Math.round((calculateCalories() * 0.30) / 9),
   };
 
-  const mealPlans = {
-    balanced: {
-      breakfast: "Oatmeal with banana & almond butter",
-      lunch: "Grilled chicken with quinoa & veggies",
-      dinner: "Salmon with sweet potatoes & broccoli",
-    },
-    vegetarian: {
-      breakfast: "Greek yogurt with nuts & berries",
-      lunch: "Quinoa & chickpea salad",
-      dinner: "Lentil soup with whole wheat toast",
-    },
-    vegan: {
-      breakfast: "Smoothie with almond milk, banana, and chia seeds",
-      lunch: "Tofu stir-fry with brown rice",
-      dinner: "Stuffed bell peppers with quinoa & black beans",
-    },
-    keto: {
-      breakfast: "Scrambled eggs with avocado",
-      lunch: "Grilled chicken with spinach & cheese",
-      dinner: "Salmon with roasted asparagus & olive oil",
-    },
-  };
+  const saveToFirebase = async () => {
+    setLoading(true);
+    const user = auth.currentUser;
+    if (!user) {
+      setMessage("⚠️ You must be logged in to save your diet plan!");
+      setLoading(false);
+      return;
+    }
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
+    const userDocRef = doc(db, "dietPlans", user.uid);
+
+    const dietData = {
+      userId: user.uid,
+      age,
+      gender,
+      activityLevel,
+      weight,
+      height,
+      goal,
+      dietType,
+      dailyCalories: calculateCalories(),
+    };
+
+    try {
+      await setDoc(userDocRef, dietData);
+      setMessage("✅ Diet plan saved successfully!");
+    } catch (error) {
+      setMessage("❌ Error saving data. Please try again.");
+      console.error("Error saving diet data:", error);
+    }
+    setLoading(false);
+  };
 
   return (
     <div className="diet-plan-container">
@@ -72,7 +80,7 @@ const DietPlan = () => {
 
       <div className="form-section">
         <div className="input-group">
-          <label>Age: {age}</label>
+          <label>Age: <span>{age}</span></label>
           <input type="range" min="1" max="100" value={age} onChange={(e) => setAge(Number(e.target.value))} />
         </div>
 
@@ -123,80 +131,79 @@ const DietPlan = () => {
         </div>
       </div>
 
-      <div className="summary-box">
-        <h2>Daily Caloric Needs: {dailyCalories} kcal</h2>
+      <div className="info-box">
+        <h2>Daily Caloric Needs: {calculateCalories()} kcal</h2>
       </div>
 
-      <div className="macro-box">
+      <div className="info-box">
         <h3>Macronutrient Breakdown</h3>
         <p>Carbohydrates: {macros.carbs}g</p>
         <p>Protein: {macros.protein}g</p>
         <p>Fats: {macros.fats}g</p>
       </div>
 
-      <div className="meal-box">
-        <h3>Recommended Meal Plan</h3>
-        <p><strong>Breakfast:</strong> {mealPlans[dietType].breakfast}</p>
-        <p><strong>Lunch:</strong> {mealPlans[dietType].lunch}</p>
-        <p><strong>Dinner:</strong> {mealPlans[dietType].dinner}</p>
-      </div>
+      <button className="save-button" onClick={saveToFirebase} disabled={loading}>
+        {loading ? "Saving..." : "SAVE"}
+      </button>
+
+      {message && <p className="message">{message}</p>}
 
       <style jsx>{`
         .diet-plan-container {
-          max-width: 700px;
-          margin: 20px auto;
+          max-width: 500px;
+          margin: 30px auto;
+          padding: 25px;
+          background: #ffffff;
+          border-radius: 12px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
           text-align: center;
-          padding: 30px;
-          background: #fff;
-          border-radius: 10px;
-          box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .title {
-          font-size: 28px;
-          font-weight: bold;
-          margin-bottom: 20px;
         }
 
         .form-section {
           display: flex;
           flex-direction: column;
           gap: 15px;
-          padding: 20px;
         }
 
         .input-group {
+          display: flex;
+          flex-direction: column;
           text-align: left;
-          font-size: 18px;
-        }
-
-        .input-group label {
-          font-weight: bold;
-          display: block;
-          margin-bottom: 5px;
         }
 
         select, input {
-          width: 100%;
           padding: 10px;
           font-size: 16px;
-          border-radius: 5px;
           border: 1px solid #ccc;
+          border-radius: 8px;
         }
 
-        .summary-box, .macro-box, .meal-box {
-          background: #f4f4f4;
-          padding: 20px;
+        .info-box {
+          background: #f8f9fa;
+          padding: 15px;
           border-radius: 10px;
-          margin-top: 20px;
-          font-size: 18px;
+          margin-top: 15px;
         }
 
-        @media (max-width: 600px) {
-          .diet-plan-container {
-            width: 90%;
-            padding: 20px;
-          }
+        .save-button {
+          background: #007bff;
+          color: white;
+          padding: 12px 18px;
+          border-radius: 8px;
+          border: none;
+          font-size: 16px;
+          cursor: pointer;
+          transition: 0.3s;
+        }
+
+        .save-button:hover {
+          background: #0056b3;
+        }
+
+        .message {
+          margin-top: 15px;
+          font-size: 14px;
+          color: green;
         }
       `}</style>
     </div>
@@ -204,3 +211,4 @@ const DietPlan = () => {
 };
 
 export default DietPlan;
+

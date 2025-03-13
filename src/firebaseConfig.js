@@ -16,12 +16,12 @@ const firebaseConfig = {
   measurementId: "G-LF5H88NKV5"
 };
 
-// ✅ Initialize Firebase only once
+/// ✅ Initialize Firebase only once
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const analytics = getAnalytics(app);
 
-// ✅ Ensure exports are correct
+// ✅ Ensure correct exports
 export { app, auth, db, storage, analytics };
